@@ -1,0 +1,114 @@
+apply plugin: 'checkstyle'
+apply plugin: 'findbugs'
+apply plugin: 'pmd'
+
+def isJava = plugins.hasPlugin('java')
+// Add checkstyle, findbugs, pmd and lint to the check task.
+// Comment it if already set in root project's build.gradle.
+check.dependsOn 'checkstyle', 'findbugs', 'pmd'
+if (!isJava) {
+    check.dependsOn 'lint'
+}
+
+checkstyle {
+    toolVersion '7.4'
+
+    configFile file("${project.rootDir}/AndroidCodeQualityConfig/quality/checkstyle/checkstyle.xml")
+    configProperties.checkstyleSuppressionFilterPath = file(
+            "${project.rootDir}/AndroidCodeQualityConfig/quality/checkstyle/suppressions.xml")
+            .absolutePath
+}
+
+task checkstyle(type: Checkstyle, group: 'verification') {
+    source 'src'
+    include '**/*.java'
+    exclude '**/gen/**'
+    exclude '**/test/**'
+    exclude '**/androidTest/**'
+    exclude '**/R.java'
+    exclude '**/BuildConfig.java'
+    classpath = files()
+}
+
+
+findbugs {
+    toolVersion = "3.0.1"
+    ignoreFailures = false
+    effort = "max"
+    reportLevel = "high"
+    excludeFilter = new File("${project.rootDir}/AndroidCodeQualityConfig/quality/findbugs/findbugs-filter.xml")
+}
+
+task findbugs(type: FindBugs, dependsOn: "assemble", group: 'verification') {
+    if (isJava) {
+        classes = files("$projectDir.absolutePath/build/classes")
+    } else {
+        classes = files("$projectDir.absolutePath/build/intermediates/classes")
+    }
+    source 'src'
+    include '**/*.java'
+    exclude '**/gen/**'
+
+    reports {
+        xml.enabled = false
+        html.enabled = true
+        xml {
+            destination "$projectDir.absolutePath/build/reports/findbugs/findbugs.xml"
+        }
+        html {
+            destination "$projectDir.absolutePath/build/reports/findbugs/findbugs.html"
+        }
+    }
+
+    classpath = files()
+}
+
+
+pmd {
+    toolVersion = '5.5.2'
+    ignoreFailures = false
+    ruleSetFiles = files("${project.rootDir}/AndroidCodeQualityConfig/quality/pmd/pmd-ruleset.xml")
+    ruleSets = []
+}
+
+task pmd(type: Pmd, group: 'verification') {
+    source 'src'
+    include '**/*.java'
+    exclude('**/gen/**', '**/debug/**')
+
+    reports {
+        xml.enabled = true
+        html.enabled = true
+        xml {
+            destination "$projectDir.absolutePath/build/reports/pmd/pmd.xml"
+        }
+        html {
+            destination "$projectDir.absolutePath/build/reports/pmd/pmd.html"
+        }
+    }
+}
+
+if (!isJava) {
+    android {
+        lintOptions {
+            disable 'NewApi' // gradle build will compile code use `Objects.requireNonNull()` for lambda
+            abortOnError true
+            xmlReport true
+            xmlOutput project.file('build/reports/lint/lint-report.xml')
+            htmlReport true
+            htmlOutput project.file('build/reports/lint/lint-report.html')
+            lintConfig file("${project.rootDir}/AndroidCodeQualityConfig/quality/lint/lint.xml")
+        }
+
+        testOptions.unitTests.all {
+            testLogging {
+                events 'passed', 'skipped', 'failed', 'standardOut', 'standardError'
+                outputs.upToDateWhen { false }
+                showStandardStreams = true
+            }
+            jvmArgs '-noverify'
+        }
+    }
+}
+
+apply from: rootProject.file('AndroidCodeQualityConfig/jacoco.gradle')

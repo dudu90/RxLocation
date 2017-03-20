@@ -1,0 +1,69 @@
+/**
+ *  Apply additional build steps to sub-projects*/
+def jacocoToolVersion = rootProject.ext.has('jacocoVersion') ? rootProject.ext.jacocoVersion : '0.7.7.201606060606'
+def moduleExcludes = rootProject.ext.has('moduleExcludes') ? rootProject.ext.moduleExcludes : [:]
+def ignoredByJacoco = rootProject.ext.has('ignoredByJacoco') ? rootProject.ext.ignoredByJacoco : []
+
+if (shouldApplyJacoco(project, ignoredByJacoco)) {
+    apply plugin: 'jacoco'
+
+    jacoco {
+        version jacocoToolVersion
+    }
+
+    task jacocoReport(type: JacocoReport, dependsOn: 'test') {
+        group = 'Reporting'
+        description = 'Generate Jacoco coverage reports after running tests.'
+
+        reports {
+            html {
+                enabled true
+                destination 'build/reports/jacoco/full'
+            }
+            xml {
+                enabled true
+                destination 'build/reports/jacoco/full/jacocoFullReport.xml'
+            }
+        }
+
+        sourceDirectories = project.files('src/main/java')
+        classDirectories = project.fileTree(dir: 'build/intermediates/classes/debug',
+                excludes: moduleExcludes[project.name] ?: [])
+
+        executionData = project.files('build/jacoco/testDebugUnitTest.exec')
+
+        doFirst {
+            renameClasses(project.name + '/build/intermediates/classes/debug')
+        }
+    }
+}
+
+List<File> listDirRecursive(File rootPath) {
+    List<File> result = new ArrayList<>()
+    List<File> children = rootPath.listFiles()
+    children.each { file ->
+        if (file.isFile()) {
+            result.add(file)
+        } else if (file.isDirectory()) {
+            result.addAll(listDirRecursive(file))
+        }
+    }
+    return result
+}
+
+void renameClasses(String rootPath) {
+    List<File> classes = listDirRecursive(file(rootPath))
+    classes.each { file ->
+        if (file.name.contains('$$')) {
+            file.renameTo(file.path.replace('$$', '$'))
+        }
+    }
+}
+
+boolean shouldApplyJacoco(Project project, List<String> ignoredByJacoco) {
+    def ignored = ignoredByJacoco.contains(project.name)
+    def isJava = project.plugins.hasPlugin("java")
+    def isAndroid = project.plugins.hasPlugin("com.android.library") || plugins.hasPlugin(
+            "com.android.application")
+    return !ignored && (isJava || isAndroid)
+}
