@@ -1,4 +1,4 @@
-package rxlocation.github.pitt.location;
+package rxlocation.github.pitt;
 
 import android.content.Context;
 
@@ -7,6 +7,7 @@ import com.amap.api.location.AMapLocationClient;
 import com.amap.api.location.AMapLocationListener;
 
 import rx.Observable;
+import rx.Single;
 import rx.Subscriber;
 import rx.Subscription;
 
@@ -15,7 +16,7 @@ import rx.Subscription;
  * Created by pitt on 2017/3/16.
  */
 
-public final class AMapRxLocationManager implements RxLocationManager<AMapLocation, AMapLocationClient> {
+final class AMapRxLocationManager implements RxLocationManager<AMapLocation, AMapLocationClient> {
     private static volatile AMapRxLocationManager sINSTANCE;
     private volatile AMapLocationClient mAMapLocationClient;
 
@@ -23,24 +24,21 @@ public final class AMapRxLocationManager implements RxLocationManager<AMapLocati
         mAMapLocationClient = new AMapLocationClient(context.getApplicationContext());
     }
 
-    public static AMapRxLocationManager getInstance() {
+    @SuppressWarnings("PMD.NonThreadSafeSingleton")
+    static AMapRxLocationManager getInstance(final Context context) {
         if (sINSTANCE == null) {
-            throw new IllegalArgumentException("AMapRxLocationManager was not initialized!");
+            synchronized (AMapRxLocationManager.class) {
+                if (sINSTANCE == null) {
+                    sINSTANCE = new AMapRxLocationManager(context);
+                }
+            }
         }
         return sINSTANCE;
     }
 
-    public static void initialize(final Context context) {
-        synchronized (AMapRxLocationManager.class) {
-            if (sINSTANCE == null) {
-                sINSTANCE = new AMapRxLocationManager(context);
-            }
-        }
-    }
-
     @Override
     public Observable<AMapLocation> getLastLocation() {
-        return Observable.just(mAMapLocationClient.getLastKnownLocation());
+        return Single.just(mAMapLocationClient.getLastKnownLocation()).toObservable();
     }
 
     @Override
@@ -49,10 +47,6 @@ public final class AMapRxLocationManager implements RxLocationManager<AMapLocati
         return Observable.unsafeCreate(rxLocationListener);
     }
 
-    @Override
-    public AMapLocationClient currentClient() {
-        return mAMapLocationClient;
-    }
 
     @Override
     public void setOption(final ClientOption option) {
@@ -60,22 +54,6 @@ public final class AMapRxLocationManager implements RxLocationManager<AMapLocati
             throw new IllegalArgumentException("Option can't be null.");
         }
         mAMapLocationClient.setLocationOption(option.getAmapOption());
-    }
-
-    @Override
-    public Observable<AMapLocation> requestLocationByOption(final ClientOption option) {
-        setOption(option);
-        return requestLocation();
-    }
-
-    @Override
-    public String getVersion() {
-        return mAMapLocationClient.getVersion();
-    }
-
-    @Override
-    public AMapLocationClient getClient() {
-        return mAMapLocationClient;
     }
 
     @SuppressWarnings("PMD.NullAssignment")

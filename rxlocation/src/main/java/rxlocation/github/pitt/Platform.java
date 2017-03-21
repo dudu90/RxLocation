@@ -17,11 +17,13 @@ public final class Platform {
     public static final int TYPE_BAIDU = 0;
     //Platform 高德
     public static final int TYPE_AMAP = 1;
+    //Platform 高德
+    public static final int TYPE_UNKNOWN = 2;
 
     private Platform() {
     }
 
-    @IntDef({TYPE_BAIDU, TYPE_AMAP})
+    @IntDef({TYPE_BAIDU, TYPE_AMAP, TYPE_UNKNOWN})
     @Retention(RetentionPolicy.SOURCE)
     public @interface Type {
     }

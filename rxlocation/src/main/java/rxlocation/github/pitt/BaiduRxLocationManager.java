@@ -1,4 +1,4 @@
-package rxlocation.github.pitt.location;
+package rxlocation.github.pitt;
 
 import android.content.Context;
 import android.support.annotation.NonNull;
@@ -8,6 +8,7 @@ import com.baidu.location.BDLocationListener;
 import com.baidu.location.LocationClient;
 
 import rx.Observable;
+import rx.Single;
 import rx.Subscriber;
 import rx.Subscription;
 
@@ -15,7 +16,7 @@ import rx.Subscription;
  * 百度RxLocationManager的实现类.
  * Created by pitt on 2017/3/16.
  */
-public final class BaiduRxLocationManager implements RxLocationManager<BDLocation, LocationClient> {
+final class BaiduRxLocationManager implements RxLocationManager<BDLocation, LocationClient> {
     private static volatile BaiduRxLocationManager sINSTANCE;
 
     private volatile LocationClient mBdlocationClient;
@@ -25,24 +26,21 @@ public final class BaiduRxLocationManager implements RxLocationManager<BDLocatio
         mBdlocationClient = new LocationClient(context.getApplicationContext());
     }
 
-    public static BaiduRxLocationManager getInstance() {
+    @SuppressWarnings("PMD.NonThreadSafeSingleton")
+    static BaiduRxLocationManager getInstance(final Context context) {
         if (sINSTANCE == null) {
-            throw new IllegalArgumentException("BaiduRxLocationManager was not initialized!");
+            synchronized (BaiduRxLocationManager.class) {
+                if (sINSTANCE == null) {
+                    sINSTANCE = new BaiduRxLocationManager(context);
+                }
+            }
         }
         return sINSTANCE;
     }
 
-    public static void initialize(final Context context) {
-        synchronized (BaiduRxLocationManager.class) {
-            if (sINSTANCE == null) {
-                sINSTANCE = new BaiduRxLocationManager(context);
-            }
-        }
-    }
-
     @Override
     public Observable<BDLocation> getLastLocation() {
-        return Observable.just(mBdlocationClient.getLastKnownLocation());
+        return Single.just(mBdlocationClient.getLastKnownLocation()).toObservable();
     }
 
     @Override
@@ -52,32 +50,11 @@ public final class BaiduRxLocationManager implements RxLocationManager<BDLocatio
     }
 
     @Override
-    public LocationClient currentClient() {
-        return mBdlocationClient;
-    }
-
-    @Override
     public void setOption(final @NonNull ClientOption option) {
         if (option == null) {
             throw new IllegalArgumentException("Option can't be null.");
         }
         mBdlocationClient.setLocOption(option.getBaiduOption());
-    }
-
-    @Override
-    public Observable<BDLocation> requestLocationByOption(final @NonNull ClientOption option) {
-        setOption(option);
-        return requestLocation();
-    }
-
-    @Override
-    public String getVersion() {
-        return mBdlocationClient.getVersion();
-    }
-
-    @Override
-    public LocationClient getClient() {
-        return mBdlocationClient;
     }
 
     @SuppressWarnings("PMD.NullAssignment")

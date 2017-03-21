@@ -2,12 +2,6 @@ package rxlocation.github.pitt;
 
 import android.content.Context;
 
-import rxlocation.github.pitt.location.AMapRxLocationManager;
-import rxlocation.github.pitt.location.BaiduRxLocationManager;
-import rxlocation.github.pitt.location.ClientOption;
-import rxlocation.github.pitt.location.ClientOptionFactory;
-import rxlocation.github.pitt.location.RxLocationManager;
-
 /**
  * Created by pitt on 2017/3/17.
  */
@@ -18,8 +12,8 @@ import rxlocation.github.pitt.location.RxLocationManager;
 public final class RxLocation {
 
     @Platform.Type
-    private static volatile int sClientType = Platform.TYPE_BAIDU;
-
+    private static volatile int sClientType = Platform.TYPE_UNKNOWN;
+    private static volatile Context sContext;
 
     private RxLocation() {
     }
@@ -27,55 +21,51 @@ public final class RxLocation {
     /**
      * 使用默认配置初始化RxLocation
      *
-     * @param context Application Context
+     * @param context Context
      */
     public static void initialize(final Context context) {
-        initialize(Platform.TYPE_BAIDU, context);
+        initialize(context, Platform.TYPE_BAIDU);
     }
 
     /**
      * 使用默认的Option和自定义的Type初始化RxLocation
-     */
-    /**
-     * 初始化RxLocation
      *
+     * @param context Context
      * @param type    定位Client类型
-     * @param context Application Context
      */
-    public static void initialize(final @Platform.Type int type, final Context context) {
-        final ClientOptionFactory clientOptionFactory = new ClientOptionFactory();
-        initialize(type, context, type == Platform.TYPE_BAIDU
-                ? clientOptionFactory.newDefaultBaiduOption()
-                : type == Platform.TYPE_AMAP
-                ? clientOptionFactory.newDefaultAMapOption() : null);
+    public static void initialize(final Context context, final @Platform.Type int type) {
+        initialize(context, type, null);
     }
 
     /**
      * 初始化RxLocation
      *
+     * @param context Context
      * @param type    定位Client类型
-     * @param context Application Context
      * @param option  定位Client定位配置信息
      */
-    public static void initialize(final @Platform.Type int type, final Context context,
+    public static void initialize(final Context context, final @Platform.Type int type,
                                   final ClientOption option) {
-        if (null == option) {
-            throw new IllegalArgumentException("Option can't be null");
+        if (null == context) {
+            throw new IllegalArgumentException("Context can't be null.");
         }
 
         if (type != Platform.TYPE_AMAP && type != Platform.TYPE_BAIDU) {
             throw new IllegalArgumentException("Platform Type must be AMAP or BAIDU.");
         }
-
         sClientType = type;
+        sContext = context.getApplicationContext();
 
-        if (sClientType == Platform.TYPE_AMAP) {
-            AMapRxLocationManager.initialize(context);
-            AMapRxLocationManager.getInstance().setOption(option);
-        } else if (sClientType == Platform.TYPE_BAIDU) {
-            BaiduRxLocationManager.initialize(context);
-            BaiduRxLocationManager.getInstance().setOption(option);
+        final ClientOption clientOption;
+        if (null == option) {
+            final ClientOptionFactory clientOptionFactory = new ClientOptionFactory();
+            clientOption = sClientType == Platform.TYPE_AMAP
+                    ? clientOptionFactory.newDefaultAMapOption()
+                    : clientOptionFactory.newDefaultBaiduOption();
+        } else {
+            clientOption = option;
         }
+        setOption(clientOption);
     }
 
     /**
@@ -84,15 +74,13 @@ public final class RxLocation {
      * @return 当前LocationManager
      */
     static RxLocationManager currentManager() {
-        final RxLocationManager rxLocationManager;
-        if (sClientType == Platform.TYPE_AMAP) {
-            rxLocationManager = AMapRxLocationManager.getInstance();
-        } else if (sClientType == Platform.TYPE_BAIDU) {
-            rxLocationManager = BaiduRxLocationManager.getInstance();
-        } else {
-            rxLocationManager = null;
+        if (null == sContext || sClientType == Platform.TYPE_UNKNOWN) {
+            throw new IllegalArgumentException("RxLocation was not initialized");
         }
-        return rxLocationManager;
+
+        return (sClientType == Platform.TYPE_AMAP)
+                ? AMapRxLocationManager.getInstance(sContext)
+                : BaiduRxLocationManager.getInstance(sContext);
     }
 
     /**
@@ -107,10 +95,13 @@ public final class RxLocation {
     /**
      * 关闭RxLocation,释放资源.
      */
+    @SuppressWarnings("PMD.NullAssignment")
     public static void shutDown() {
         final RxLocationManager rxLocationManager = currentManager();
         if (rxLocationManager != null) {
             rxLocationManager.shutDown();
         }
+        sContext = null;
+        sClientType = Platform.TYPE_UNKNOWN;
     }
 }

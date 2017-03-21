@@ -1,4 +1,4 @@
-package rxlocation.github.pitt.location;
+package rxlocation.github.pitt;
 
 import com.amap.api.location.AMapLocationClientOption;
 import com.baidu.location.LocationClientOption;
