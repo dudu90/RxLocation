@@ -38,13 +38,17 @@ android {
     }
 }
 
-
+repositories {
+    maven {
+        url 'https://dl.bintray.com/dudu90/maven'
+    }
+}
 
 dependencies {
     compile fileTree(include: ['*.jar'], dir: 'libs')
     compile "com.android.support:appcompat-v7:${rootProject.ext.androidSupportSdkVersion}"
     testCompile 'junit:junit:4.12'
-    compile project(':rxlocation')
+    compile 'RxLocation:rxlocation:1.0'
     compile('io.reactivex:rxandroid:1.2.1') {
         exclude module: 'rxjava'
     }

@@ -11,3 +11,6 @@ rxlocation/rxlocation.iml
 
 # Local configuration file (sdk path, etc)
 /local.properties
+
+# bintray
+bintray.properties

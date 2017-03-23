@@ -1,5 +1,8 @@
 apply plugin: 'com.android.library'
+apply plugin: 'com.jfrog.bintray'
+apply plugin: 'maven-publish'
 apply from: '../AndroidCodeQualityConfig/quality.gradle'
+apply from: "$rootProject.rootDir.absolutePath/gradle/publish-android-library.gradle"
 android {
     compileSdkVersion rootProject.ext.androidCompileSdkVersion
     buildToolsVersion rootProject.ext.androidBuildToolsVersion
@@ -7,6 +10,7 @@ android {
     defaultConfig {
         minSdkVersion rootProject.ext.libMinSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
+
         versionCode rootProject.ext.releaseVersionCode
         versionName rootProject.ext.releaseVersionName
     }

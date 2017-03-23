@@ -9,7 +9,6 @@ import rx.Observable;
 /**
  * @param <L> Location信息
  * @param <C> 定位使用的Client
- * @param <O> Client中对用的Option信息
  */
 interface RxLocationManager<L, C> {
 

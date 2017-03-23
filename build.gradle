@@ -6,7 +6,8 @@ buildscript {
     }
     dependencies {
         classpath 'com.android.tools.build:gradle:2.2.3'
-
+        classpath 'com.jfrog.bintray.gradle:gradle-bintray-plugin:1.7.1'
+        classpath 'com.github.dcendents:android-maven-gradle-plugin:1.5'
         // NOTE: Do not place your application dependencies here; they belong
         // in the individual module build.gradle files
     }
@@ -25,7 +26,7 @@ task clean(type: Delete) {
 ext {
 
     releaseVersionCode = 1
-    releaseVersionName = '0.0.1'
+    releaseVersionName = '1.0'
 
     ignoredByJacoco = ["app"]
 
@@ -35,4 +36,22 @@ ext {
     minSdkVersion = 14
     targetSdkVersion = 25
     libMinSdkVersion = 1
+
+
+    siteUrl = 'https://github.com/dudu90/RxLocation'
+    gitUrl = 'https://github.com/dudu90/RxLocation.git'
+    desc = '适用于Android平台的,配合Rxjava的高效，无内存泄漏的定位库，适用于高德和百度。'
+    issueTrackerUrl = 'https://github.com/dudu90/RxLocation/issues'
+    license = [
+            id  : 'Apache-2.0',
+            name: 'The Apache-2.0 License (Apache-2.0)',
+            url : 'https://opensource.org/licenses/Apache-2.0'
+    ]
+    developer = [
+            id   : 'dudu90',
+            name : 'pitt',
+            email: 'fengshengq@gmail.com'
+    ]
+    artifactLabels = ['android', 'rxjava', 'location']
+
 }
