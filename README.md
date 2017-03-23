@@ -1,7 +1,5 @@
 # RxLocation
-[![Download](https://api.bintray.com/packages/dudu90/maven/rxlocation/images/download.svg)](https://bintray.com/dudu90/maven/rxlocation/_latestVersion)
-
-[![Build Status](https://api.travis-ci.org/dudu90/rxlocation.svg?branch=master)](https://travis-ci.org/dudu90/RxLocation)
+[![Download](https://api.bintray.com/packages/dudu90/maven/rxlocation/images/download.svg)](https://bintray.com/dudu90/maven/rxlocation/_latestVersion)  [![Build Status](https://travis-ci.org/dudu90/RxLocation.svg?branch=master)](https://travis-ci.org/dudu90/RxLocation)
 
 适用于Android的与Rxjava结合的，快速简单的定位库.
 
