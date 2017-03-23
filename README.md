@@ -53,3 +53,7 @@ new LocationRequester<BDLocation>().lastLocation()
 1.位置提醒
 
 2.欢迎新的需求
+
+## 鸣谢
+
++ 感谢我的同事和良师,[promeG](https://github.com/promeG/)。
